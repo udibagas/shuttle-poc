@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["bun"]
+
+[phases.install]
+cmds = ["bun install"]
+
+[phases.build]
+cmds = [
+  "cd apps/api && bun run db:generate",
+  "cd apps/api && bun run db:push"
+]
+
+[start]
+cmd = "cd apps/api && bun run start"

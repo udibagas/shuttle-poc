@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
+    "build": "bun build --compile --minify-whitespace --minify-syntax --target bun-linux-x64 --outfile server src/index.ts",
     "lint": "echo 'Lint API'",
     "test": "bun test",
     "db:migrate": "bunx prisma migrate dev --schema=./prisma/schema.prisma",
