@@ -4,8 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
-    "build": "bun build src/index.ts --outdir dist --target bun",
-    "start": "bun dist/index.js",
+    "start": "bun src/index.ts",
     "lint": "echo 'Lint API'",
     "test": "bun test",
     "db:migrate": "bunx prisma migrate dev --schema=./prisma/schema.prisma",
