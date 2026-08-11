@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { WebSocketEvent } from "@shuttle/types";
 
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:3000";
+const WS_URL = (import.meta as any).env.VITE_WS_URL || "ws://localhost:3000";
 
 export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);

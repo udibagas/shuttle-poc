@@ -17,7 +17,6 @@ import {
 import {
   EnvironmentOutlined,
   UserOutlined,
-  FileTextOutlined,
 } from '@ant-design/icons';
 
 const { TextArea } = Input;
@@ -149,7 +148,6 @@ export function NewBooking() {
               <TextArea
                 rows={4}
                 placeholder="Any special requirements..."
-                prefix={<FileTextOutlined />}
               />
             </Form.Item>
 
