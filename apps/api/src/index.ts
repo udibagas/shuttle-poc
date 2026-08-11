@@ -88,24 +88,12 @@ const app = new Elysia()
   .use(bookingRoutes)
   .use(driverRoutes)
   .use(adminRoutes)
-  .listen(PORT);
+  .listen({
+    port: PORT,
+    hostname: "0.0.0.0",
+  });
 
 console.log("🚀 Shuttle POC API Server");
-console.log(`📡 HTTP Server: http://localhost:${PORT}`);
-console.log(`🔌 WebSocket Server: ws://localhost:${PORT}/ws`);
-console.log("");
-console.log("Available routes:");
-console.log("  POST   /auth/login");
-console.log("  GET    /auth/me");
-console.log("  GET    /locations");
-console.log("  POST   /bookings");
-console.log("  GET    /bookings");
-console.log("  GET    /driver/profile");
-console.log("  POST   /driver/status");
-console.log("  GET    /driver/bookings/available");
-console.log("  POST   /driver/bookings/:id/accept");
-console.log("  GET    /admin/dashboard");
-console.log("");
 console.log("✅ Server started successfully");
 
 export type App = typeof app;
