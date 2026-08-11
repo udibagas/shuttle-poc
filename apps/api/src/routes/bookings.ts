@@ -3,12 +3,13 @@ import { prisma } from "../utils/db";
 import { successResponse, AppError } from "../utils/errors";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { generateBookingNumber } from "../utils/booking";
-import { UserRole, BookingStatus, DriverStatus } from "@shuttle/types";
+import { UserRole, BookingStatus } from "@shuttle/types";
 import type { CreateBookingRequest } from "@shuttle/types";
 import { broadcastEvent } from "../websocket";
+import { jwtPlugin } from "../plugins/jwt";
 
 export const bookingRoutes = (app: Elysia) =>
-  app.group("/bookings", (app) =>
+  app.use(jwtPlugin).group("/bookings", (app) =>
     app
       .post(
         "/",

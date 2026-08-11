@@ -1,7 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
+import { Card, Table, Typography, Space } from 'antd'
+import { UserOutlined, CalendarOutlined, IdcardOutlined } from '@ant-design/icons'
 import { Layout } from '../../components/Layout'
 import { apiClient } from '../../lib/api'
 import type { User } from '@shuttle/types'
+import type { ColumnsType } from 'antd/es/table'
+
+const { Title, Text } = Typography
 
 export function AdminUsers() {
   const { data: users, isLoading } = useQuery<User[]>({
@@ -9,60 +14,64 @@ export function AdminUsers() {
     queryFn: () => apiClient.get('/admin/users')
   })
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      </Layout>
-    )
-  }
+  const columns: ColumnsType<User> = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text) => (
+        <Space>
+          <UserOutlined />
+          <Text strong>{text}</Text>
+        </Space>
+      ),
+      width: 250,
+    },
+    {
+      title: 'Username',
+      dataIndex: 'username',
+      key: 'username',
+      render: (text) => (
+        <Space>
+          <IdcardOutlined />
+          <Text>{text}</Text>
+        </Space>
+      ),
+      width: 200,
+    },
+    {
+      title: 'Created At',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date) => (
+        <Space>
+          <CalendarOutlined />
+          <Text type="secondary">{new Date(date).toLocaleDateString()}</Text>
+        </Space>
+      ),
+      width: 180,
+    },
+  ]
 
   return (
     <Layout>
-      <div className="px-4 sm:px-0">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Users</h1>
-
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          {users && users.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Username
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created At
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {user.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.username}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No users found</p>
-            </div>
-          )}
-        </div>
-      </div>
+      <Card>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <Title level={2}>Users</Title>
+          <Table
+            columns={columns}
+            dataSource={users || []}
+            loading={isLoading}
+            rowKey="id"
+            scroll={{ x: 630 }}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
+            }}
+          />
+        </Space>
+      </Card>
     </Layout>
   )
 }

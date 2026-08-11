@@ -4,9 +4,10 @@ import { verifyPassword } from "../utils/auth";
 import { AppError, successResponse } from "../utils/errors";
 import { requireAuth } from "../middleware/auth";
 import type { LoginRequest } from "@shuttle/types";
+import { jwtPlugin } from "../plugins/jwt";
 
 export const authRoutes = (app: Elysia) =>
-  app.group("/auth", (app) =>
+  app.use(jwtPlugin).group("/auth", (app) =>
     app
       .post(
         "/login",

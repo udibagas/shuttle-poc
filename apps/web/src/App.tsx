@@ -1,45 +1,55 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider, useAuth } from './contexts/AuthContext'
-import { LoginPage } from './pages/LoginPage'
-import { UserDashboard } from './pages/user/Dashboard'
-import { UserBookings } from './pages/user/Bookings'
-import { NewBooking } from './pages/user/NewBooking'
-import { DriverDashboard } from './pages/driver/Dashboard'
-import { DriverBookings } from './pages/driver/Bookings'
-import { AdminDashboard } from './pages/admin/Dashboard'
-import { AdminBookings } from './pages/admin/Bookings'
-import { AdminDrivers } from './pages/admin/Drivers'
-import { AdminUsers } from './pages/admin/Users'
-import { AdminVehicles } from './pages/admin/Vehicles'
-import { AdminLocations } from './pages/admin/Locations'
-import { UserRole } from '@shuttle/types'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LoginPage } from './pages/LoginPage';
+import { UserDashboard } from './pages/user/Dashboard';
+import { UserBookings } from './pages/user/Bookings';
+import { NewBooking } from './pages/user/NewBooking';
+import { DriverDashboard } from './pages/driver/Dashboard';
+import { DriverBookings } from './pages/driver/Bookings';
+import { AdminDashboard } from './pages/admin/Dashboard';
+import { AdminBookings } from './pages/admin/Bookings';
+import { AdminDrivers } from './pages/admin/Drivers';
+import { AdminUsers } from './pages/admin/Users';
+import { AdminVehicles } from './pages/admin/Vehicles';
+import { AdminLocations } from './pages/admin/Locations';
+import { UserRole } from '@shuttle/types';
+import { Spin } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 
 function ProtectedRoute({
   children,
-  allowedRoles
+  allowedRoles,
 }: {
-  children: React.ReactNode
-  allowedRoles?: UserRole[]
+  children: React.ReactNode;
+  allowedRoles?: UserRole[];
 }) {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#f0f2f5',
+        }}
+      >
+        <Spin size="large" indicator={<LoadingOutlined spin />} />
       </div>
-    )
+    );
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function RoleBasedRedirect() {

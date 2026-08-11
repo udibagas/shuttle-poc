@@ -1,82 +1,104 @@
-import { useQuery } from '@tanstack/react-query'
-import { Layout } from '../../components/Layout'
-import { StatusBadge } from '../../components/StatusBadge'
-import { apiClient } from '../../lib/api'
-import type { Booking } from '@shuttle/types'
+import { useQuery } from '@tanstack/react-query';
+import { Layout } from '../../components/Layout';
+import { StatusBadge } from '../../components/StatusBadge';
+import { apiClient } from '../../lib/api';
+import type { Booking } from '@shuttle/types';
+import { Card, Table, Typography, Space } from 'antd';
+import { EnvironmentOutlined, UserOutlined } from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
+
+const { Title, Text } = Typography;
 
 export function DriverBookings() {
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ['driver-bookings'],
-    queryFn: () => apiClient.get('/bookings')
-  })
+    queryFn: () => apiClient.get('/bookings'),
+  });
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      </Layout>
-    )
-  }
+  const columns: ColumnsType<Booking> = [
+    {
+      title: 'Booking #',
+      dataIndex: 'bookingNumber',
+      key: 'bookingNumber',
+      render: (text) => <Text strong>{text}</Text>,
+      fixed: 'left',
+      width: 150,
+    },
+    {
+      title: 'Passenger',
+      key: 'passenger',
+      render: (_, record) => (
+        <Space>
+          <UserOutlined />
+          <Text>{record.user?.name}</Text>
+        </Space>
+      ),
+      width: 150,
+    },
+    {
+      title: 'Route',
+      key: 'route',
+      render: (_, record) => (
+        <Space direction="vertical" size="small">
+          <Space size="small">
+            <EnvironmentOutlined />
+            <Text>{record.pickupLocation?.name}</Text>
+          </Space>
+          <Space size="small">
+            <EnvironmentOutlined />
+            <Text>{record.destinationLocation?.name}</Text>
+          </Space>
+        </Space>
+      ),
+      width: 250,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => <StatusBadge status={status} />,
+      width: 150,
+      filters: [
+        { text: 'Pending', value: 'PENDING' },
+        { text: 'Assigned', value: 'ASSIGNED' },
+        { text: 'In Progress', value: 'IN_PROGRESS' },
+        { text: 'Completed', value: 'COMPLETED' },
+        { text: 'Cancelled', value: 'CANCELLED' },
+      ],
+      onFilter: (value, record) => record.status === value,
+    },
+    {
+      title: 'Requested At',
+      dataIndex: 'requestedAt',
+      key: 'requestedAt',
+      render: (date) => new Date(date).toLocaleString(),
+      sorter: (a, b) =>
+        new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime(),
+      defaultSortOrder: 'descend',
+      width: 180,
+    },
+  ];
 
   return (
     <Layout>
-      <div className="px-4 sm:px-0">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">My Bookings</h1>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Title level={2}>My Bookings</Title>
 
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          {bookings && bookings.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Booking #
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Passenger
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Route
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Requested At
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {bookings.map((booking) => (
-                  <tr key={booking.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {booking.bookingNumber}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {booking.user?.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {booking.pickupLocation?.name} →{' '}
-                      {booking.destinationLocation?.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={booking.status} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(booking.requestedAt).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No bookings found</p>
-            </div>
-          )}
-        </div>
-      </div>
+        <Card bordered={false} style={{ borderRadius: '8px' }}>
+          <Table
+            columns={columns}
+            dataSource={bookings}
+            rowKey="id"
+            loading={isLoading}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Total ${total} bookings`,
+            }}
+            scroll={{ x: 800 }}
+          />
+        </Card>
+      </Space>
     </Layout>
-  )
+  );
 }

@@ -1,7 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
+import { Card, Table, Typography, Space, Tag } from 'antd'
+import { CarOutlined, UserOutlined, TeamOutlined, TagOutlined } from '@ant-design/icons'
 import { Layout } from '../../components/Layout'
 import { apiClient } from '../../lib/api'
 import type { Vehicle } from '@shuttle/types'
+import type { ColumnsType } from 'antd/es/table'
+
+const { Title, Text } = Typography
 
 export function AdminVehicles() {
   const { data: vehicles, isLoading } = useQuery<Vehicle[]>({
@@ -9,68 +14,81 @@ export function AdminVehicles() {
     queryFn: () => apiClient.get('/admin/vehicles')
   })
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      </Layout>
-    )
-  }
+  const columns: ColumnsType<Vehicle> = [
+    {
+      title: 'Plate Number',
+      dataIndex: 'plateNumber',
+      key: 'plateNumber',
+      render: (text) => (
+        <Space>
+          <CarOutlined />
+          <Text strong>{text}</Text>
+        </Space>
+      ),
+      width: 180,
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (text) => (
+        <Space>
+          <TagOutlined />
+          <Tag color="blue">{text}</Tag>
+        </Space>
+      ),
+      width: 150,
+    },
+    {
+      title: 'Capacity',
+      dataIndex: 'capacity',
+      key: 'capacity',
+      render: (capacity) => (
+        <Space>
+          <TeamOutlined />
+          <Text>{capacity} passengers</Text>
+        </Space>
+      ),
+      width: 180,
+    },
+    {
+      title: 'Assigned Driver',
+      key: 'driver',
+      render: (_, record) => {
+        const drivers = (record as any).drivers
+        if (drivers && drivers.length > 0) {
+          return (
+            <Space>
+              <UserOutlined />
+              <Text>{drivers[0].user?.name}</Text>
+            </Space>
+          )
+        }
+        return <Text type="secondary" italic>Not assigned</Text>
+      },
+      width: 200,
+    },
+  ]
 
   return (
     <Layout>
-      <div className="px-4 sm:px-0">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Vehicles</h1>
-
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          {vehicles && vehicles.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Plate Number
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Capacity
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Assigned Driver
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {vehicles.map((vehicle) => (
-                  <tr key={vehicle.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {vehicle.plateNumber}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {vehicle.type}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {vehicle.capacity} passengers
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {(vehicle as any).drivers?.length > 0
-                        ? (vehicle as any).drivers[0].user?.name
-                        : 'Not assigned'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No vehicles found</p>
-            </div>
-          )}
-        </div>
-      </div>
+      <Card>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <Title level={2}>Vehicles</Title>
+          <Table
+            columns={columns}
+            dataSource={vehicles || []}
+            loading={isLoading}
+            rowKey="id"
+            scroll={{ x: 710 }}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} vehicles`,
+            }}
+          />
+        </Space>
+      </Card>
     </Layout>
   )
 }

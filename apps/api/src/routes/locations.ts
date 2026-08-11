@@ -7,9 +7,10 @@ import type {
   CreateLocationRequest,
   UpdateLocationRequest,
 } from "@shuttle/types";
+import { jwtPlugin } from "../plugins/jwt";
 
 export const locationRoutes = (app: Elysia) =>
-  app.group("/locations", (app) =>
+  app.use(jwtPlugin).group("/locations", (app) =>
     app
       .get("/", async () => {
         const locations = await prisma.location.findMany({

@@ -1,7 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
+import { Card, Table, Typography, Space, Tag } from 'antd'
+import { EnvironmentOutlined, BarcodeOutlined, TagOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { Layout } from '../../components/Layout'
 import { apiClient } from '../../lib/api'
 import type { Location } from '@shuttle/types'
+import type { ColumnsType } from 'antd/es/table'
+
+const { Title, Text } = Typography
 
 export function AdminLocations() {
   const { data: locations, isLoading } = useQuery<Location[]>({
@@ -9,73 +14,78 @@ export function AdminLocations() {
     queryFn: () => apiClient.get('/locations')
   })
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      </Layout>
-    )
-  }
+  const columns: ColumnsType<Location> = [
+    {
+      title: 'Code',
+      dataIndex: 'code',
+      key: 'code',
+      render: (text) => (
+        <Space>
+          <BarcodeOutlined />
+          <Text strong>{text}</Text>
+        </Space>
+      ),
+      width: 150,
+    },
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text) => (
+        <Space>
+          <EnvironmentOutlined />
+          <Text>{text}</Text>
+        </Space>
+      ),
+      width: 250,
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (text) => (
+        <Space>
+          <TagOutlined />
+          <Tag color="blue">{text}</Tag>
+        </Space>
+      ),
+      width: 150,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (isActive: boolean) => (
+        <Tag
+          icon={isActive ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+          color={isActive ? 'success' : 'error'}
+        >
+          {isActive ? 'Active' : 'Inactive'}
+        </Tag>
+      ),
+      width: 130,
+    },
+  ]
 
   return (
     <Layout>
-      <div className="px-4 sm:px-0">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Locations</h1>
-
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          {locations && locations.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Code
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {locations.map((location) => (
-                  <tr key={location.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {location.code}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {location.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {location.type}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${location.isActive
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                          }`}
-                      >
-                        {location.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No locations found</p>
-            </div>
-          )}
-        </div>
-      </div>
+      <Card>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <Title level={2}>Locations</Title>
+          <Table
+            columns={columns}
+            dataSource={locations || []}
+            loading={isLoading}
+            rowKey="id"
+            scroll={{ x: 680 }}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} locations`,
+            }}
+          />
+        </Space>
+      </Card>
     </Layout>
   )
 }

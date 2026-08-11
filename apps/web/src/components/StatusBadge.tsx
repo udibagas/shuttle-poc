@@ -1,29 +1,53 @@
-import { BookingStatus } from '@shuttle/types'
+import { BookingStatus } from '@shuttle/types';
+import { Tag } from 'antd';
+import {
+  ClockCircleOutlined,
+  UserOutlined,
+  CarOutlined,
+  PlayCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+} from '@ant-design/icons';
 
 export function StatusBadge({ status }: { status: BookingStatus }) {
-  const styles = {
-    [BookingStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-    [BookingStatus.ASSIGNED]: 'bg-blue-100 text-blue-800',
-    [BookingStatus.DRIVER_ARRIVED]: 'bg-purple-100 text-purple-800',
-    [BookingStatus.IN_PROGRESS]: 'bg-indigo-100 text-indigo-800',
-    [BookingStatus.COMPLETED]: 'bg-green-100 text-green-800',
-    [BookingStatus.CANCELLED]: 'bg-red-100 text-red-800'
-  }
+  const config = {
+    [BookingStatus.PENDING]: {
+      color: 'warning',
+      label: 'Pending',
+      icon: <ClockCircleOutlined />,
+    },
+    [BookingStatus.ASSIGNED]: {
+      color: 'processing',
+      label: 'Assigned',
+      icon: <UserOutlined />,
+    },
+    [BookingStatus.DRIVER_ARRIVED]: {
+      color: 'purple',
+      label: 'Driver Arrived',
+      icon: <CarOutlined />,
+    },
+    [BookingStatus.IN_PROGRESS]: {
+      color: 'cyan',
+      label: 'In Progress',
+      icon: <PlayCircleOutlined />,
+    },
+    [BookingStatus.COMPLETED]: {
+      color: 'success',
+      label: 'Completed',
+      icon: <CheckCircleOutlined />,
+    },
+    [BookingStatus.CANCELLED]: {
+      color: 'error',
+      label: 'Cancelled',
+      icon: <CloseCircleOutlined />,
+    },
+  };
 
-  const labels = {
-    [BookingStatus.PENDING]: 'Pending',
-    [BookingStatus.ASSIGNED]: 'Assigned',
-    [BookingStatus.DRIVER_ARRIVED]: 'Driver Arrived',
-    [BookingStatus.IN_PROGRESS]: 'In Progress',
-    [BookingStatus.COMPLETED]: 'Completed',
-    [BookingStatus.CANCELLED]: 'Cancelled'
-  }
+  const { color, label, icon } = config[status];
 
   return (
-    <span
-      className={`px-2 py-1 text-xs font-semibold rounded-full ${styles[status]}`}
-    >
-      {labels[status]}
-    </span>
-  )
+    <Tag color={color} icon={icon}>
+      {label}
+    </Tag>
+  );
 }

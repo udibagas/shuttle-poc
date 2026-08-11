@@ -1,171 +1,196 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
-import { Layout } from '../../components/Layout'
-import { apiClient } from '../../lib/api'
-import type { Location, CreateBookingRequest } from '@shuttle/types'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { Layout } from '../../components/Layout';
+import { apiClient } from '../../lib/api';
+import type { Location, CreateBookingRequest } from '@shuttle/types';
+import {
+  Card,
+  Form,
+  Select,
+  InputNumber,
+  Input,
+  Button,
+  Space,
+  Alert,
+  Typography,
+} from 'antd';
+import {
+  EnvironmentOutlined,
+  UserOutlined,
+  FileTextOutlined,
+} from '@ant-design/icons';
+
+const { TextArea } = Input;
+const { Title } = Typography;
 
 export function NewBooking() {
-  const [pickupLocationId, setPickupLocationId] = useState('')
-  const [destinationLocationId, setDestinationLocationId] = useState('')
-  const [passengerCount, setPassengerCount] = useState(1)
-  const [notes, setNotes] = useState('')
-  const [error, setError] = useState('')
+  const [form] = Form.useForm();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-
-  const { data: locations } = useQuery<Location[]>({
+  const { data: locations, isLoading: locationsLoading } = useQuery<Location[]>({
     queryKey: ['locations'],
-    queryFn: () => apiClient.get('/locations')
-  })
+    queryFn: () => apiClient.get('/locations'),
+  });
 
   const createBookingMutation = useMutation({
     mutationFn: (data: CreateBookingRequest) =>
       apiClient.post('/bookings', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] })
-      navigate('/user')
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      navigate('/user');
     },
-    onError: (err: any) => {
-      setError(err.message || 'Failed to create booking')
-    }
-  })
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    if (pickupLocationId === destinationLocationId) {
-      setError('Pickup and destination locations must be different')
-      return
-    }
-
+  const handleSubmit = (values: any) => {
     createBookingMutation.mutate({
-      pickupLocationId,
-      destinationLocationId,
-      passengerCount,
-      notes: notes || undefined
-    })
-  }
+      pickupLocationId: values.pickupLocationId,
+      destinationLocationId: values.destinationLocationId,
+      passengerCount: values.passengerCount,
+      notes: values.notes || undefined,
+    });
+  };
 
   return (
     <Layout>
-      <div className="px-4 sm:px-0">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
-          Request Shuttle
-        </h1>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Title level={2}>Request Shuttle</Title>
 
-        <div className="bg-white shadow rounded-lg p-6 max-w-2xl">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label
-                htmlFor="pickup"
-                className="block text-sm font-medium text-gray-700"
+        <Card bordered={false} style={{ maxWidth: 800, borderRadius: '8px' }}>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            initialValues={{ passengerCount: 1 }}
+            size="large"
+          >
+            <Form.Item
+              name="pickupLocationId"
+              label="Pickup Location"
+              rules={[
+                { required: true, message: 'Please select pickup location' },
+                {
+                  validator: (_, value) => {
+                    const destinationId = form.getFieldValue('destinationLocationId');
+                    if (value && destinationId && value === destinationId) {
+                      return Promise.reject(
+                        'Pickup and destination must be different'
+                      );
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
+              <Select
+                placeholder="Select pickup location"
+                loading={locationsLoading}
+                showSearch
+                optionFilterProp="children"
+                suffixIcon={<EnvironmentOutlined />}
               >
-                Pickup Location
-              </label>
-              <select
-                id="pickup"
-                value={pickupLocationId}
-                onChange={(e) => setPickupLocationId(e.target.value)}
-                required
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="">Select pickup location</option>
                 {locations?.map((location) => (
-                  <option key={location.id} value={location.id}>
+                  <Select.Option key={location.id} value={location.id}>
                     {location.name} ({location.code})
-                  </option>
+                  </Select.Option>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </Form.Item>
 
-            <div>
-              <label
-                htmlFor="destination"
-                className="block text-sm font-medium text-gray-700"
+            <Form.Item
+              name="destinationLocationId"
+              label="Destination"
+              rules={[
+                { required: true, message: 'Please select destination' },
+                {
+                  validator: (_, value) => {
+                    const pickupId = form.getFieldValue('pickupLocationId');
+                    if (value && pickupId && value === pickupId) {
+                      return Promise.reject(
+                        'Pickup and destination must be different'
+                      );
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
+              <Select
+                placeholder="Select destination"
+                loading={locationsLoading}
+                showSearch
+                optionFilterProp="children"
+                suffixIcon={<EnvironmentOutlined />}
               >
-                Destination
-              </label>
-              <select
-                id="destination"
-                value={destinationLocationId}
-                onChange={(e) => setDestinationLocationId(e.target.value)}
-                required
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="">Select destination</option>
                 {locations?.map((location) => (
-                  <option key={location.id} value={location.id}>
+                  <Select.Option key={location.id} value={location.id}>
                     {location.name} ({location.code})
-                  </option>
+                  </Select.Option>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </Form.Item>
 
-            <div>
-              <label
-                htmlFor="passengers"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Passenger Count
-              </label>
-              <input
-                type="number"
-                id="passengers"
-                min="1"
-                value={passengerCount}
-                onChange={(e) => setPassengerCount(parseInt(e.target.value))}
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            <Form.Item
+              name="passengerCount"
+              label="Passenger Count"
+              rules={[
+                { required: true, message: 'Please enter passenger count' },
+              ]}
+            >
+              <InputNumber
+                min={1}
+                max={20}
+                style={{ width: '100%' }}
+                prefix={<UserOutlined />}
               />
-            </div>
+            </Form.Item>
 
-            <div>
-              <label
-                htmlFor="notes"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Notes (Optional)
-              </label>
-              <textarea
-                id="notes"
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            <Form.Item name="notes" label="Notes (Optional)">
+              <TextArea
+                rows={4}
                 placeholder="Any special requirements..."
+                prefix={<FileTextOutlined />}
               />
-            </div>
+            </Form.Item>
 
-            {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
+            {createBookingMutation.error && (
+              <Form.Item>
+                <Alert
+                  message="Error"
+                  description={
+                    (createBookingMutation.error as any).message ||
+                    'Failed to create booking'
+                  }
+                  type="error"
+                  showIcon
+                  closable
+                />
+              </Form.Item>
             )}
 
-            <div className="flex space-x-3">
-              <button
-                type="submit"
-                disabled={createBookingMutation.isPending}
-                className="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-              >
-                {createBookingMutation.isPending
-                  ? 'Creating...'
-                  : 'Request Shuttle'}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/user')}
-                className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+            <Form.Item>
+              <Space size="middle" style={{ width: '100%' }}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={createBookingMutation.isPending}
+                  size="large"
+                  block
+                >
+                  Request Shuttle
+                </Button>
+                <Button
+                  onClick={() => navigate('/user')}
+                  size="large"
+                  block
+                >
+                  Cancel
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
+      </Space>
     </Layout>
-  )
+  );
 }

@@ -3,9 +3,10 @@ import { prisma } from "../utils/db";
 import { successResponse } from "../utils/errors";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { UserRole, BookingStatus, DriverStatus } from "@shuttle/types";
+import { jwtPlugin } from "../plugins/jwt";
 
 export const adminRoutes = (app: Elysia) =>
-  app.group("/admin", (app) =>
+  app.use(jwtPlugin).group("/admin", (app) =>
     app
       .get("/dashboard", async ({ request, jwt }) => {
         const user = requireAuth({ request, jwt } as any);

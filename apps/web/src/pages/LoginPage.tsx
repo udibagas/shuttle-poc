@@ -1,101 +1,125 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Card, Form, Input, Button, Alert, Typography, Space, Divider } from 'antd';
+import { UserOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
+
+const { Title, Text, Paragraph } = Typography;
 
 export function LoginPage() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
-  const navigate = useNavigate()
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
+  const handleSubmit = async (values: { username: string; password: string }) => {
+    setError('');
+    setIsLoading(true);
 
     try {
-      await login({ username, password })
-      navigate('/')
+      await login(values);
+      navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Login failed')
+      setError(err.message || 'Login failed');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Shuttle POC
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Port Transportation Management System
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '16px',
+      }}
+    >
+      <Card
+        style={{
+          width: '100%',
+          maxWidth: 450,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+          borderRadius: '12px',
+        }}
+      >
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <div style={{ textAlign: 'center' }}>
+            <Title level={2} style={{ marginBottom: 8 }}>
+              🚐 Shuttle POC
+            </Title>
+            <Text type="secondary">Port Transportation Management System</Text>
           </div>
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          <Form
+            form={form}
+            name="login"
+            onFinish={handleSubmit}
+            size="large"
+            layout="vertical"
+          >
+            <Form.Item
+              name="username"
+              rules={[{ required: true, message: 'Please enter your username' }]}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-        </form>
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="Username"
+                autoComplete="username"
+              />
+            </Form.Item>
 
-        <div className="mt-6 text-sm text-gray-600 space-y-2">
-          <p className="font-semibold">Demo Credentials:</p>
-          <div className="bg-white p-3 rounded border">
-            <p><strong>Admin:</strong> admin / password</p>
-            <p><strong>User:</strong> user01 / password</p>
-            <p><strong>Driver:</strong> driver01 / password</p>
-          </div>
-        </div>
-      </div>
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: 'Please enter your password' }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="Password"
+                autoComplete="current-password"
+              />
+            </Form.Item>
+
+            {error && (
+              <Form.Item>
+                <Alert message={error} type="error" showIcon closable />
+              </Form.Item>
+            )}
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={isLoading}
+                icon={<LoginOutlined />}
+                block
+                size="large"
+              >
+                Sign In
+              </Button>
+            </Form.Item>
+          </Form>
+
+          <Divider>Demo Credentials</Divider>
+
+          <Card size="small" style={{ background: '#fafafa' }}>
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <div>
+                <Text strong>Admin:</Text> <Text code>admin / password</Text>
+              </div>
+              <div>
+                <Text strong>User:</Text> <Text code>user01 / password</Text>
+              </div>
+              <div>
+                <Text strong>Driver:</Text> <Text code>driver01 / password</Text>
+              </div>
+            </Space>
+          </Card>
+        </Space>
+      </Card>
     </div>
-  )
+  );
 }

@@ -9,9 +9,10 @@ import {
   BookingDriverAttemptStatus,
 } from "@shuttle/types";
 import { broadcastEvent } from "../websocket";
+import { jwtPlugin } from "../plugins/jwt";
 
 export const driverRoutes = (app: Elysia) =>
-  app.group("/driver", (app) =>
+  app.use(jwtPlugin).group("/driver", (app) =>
     app
       .get("/profile", async ({ request, jwt }) => {
         const user = requireAuth({ request, jwt } as any);

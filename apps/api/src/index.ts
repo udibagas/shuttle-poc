@@ -1,37 +1,30 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
-import { jwt } from "@elysiajs/jwt";
 import { authRoutes } from "./routes/auth";
 import { locationRoutes } from "./routes/locations";
 import { bookingRoutes } from "./routes/bookings";
 import { driverRoutes } from "./routes/driver";
 import { adminRoutes } from "./routes/admin";
 import { AppError, errorResponse } from "./utils/errors";
-import { addConnection, removeConnection } from "./websocket";
-import type { ServerWebSocket } from "bun";
+import {
+  addConnection,
+  removeConnection,
+  type WebSocketData,
+} from "./websocket";
+import { jwtPlugin } from "./plugins/jwt";
+import type { JWTPayload } from "./utils/auth";
 
-const JWT_SECRET = process.env.JWT_SECRET || "change-this-secret-in-production";
 const PORT = process.env.PORT || 3000;
 
-interface WebSocketData {
-  userId?: string;
-  role?: string;
-}
-
 const app = new Elysia()
+  .use(jwtPlugin)
   .use(
     cors({
       origin: true,
       credentials: true,
     }),
   )
-  .use(
-    jwt({
-      name: "jwt",
-      secret: JWT_SECRET,
-    }),
-  )
-  .onError(({ code, error, set }) => {
+  .onError(({ error, set }) => {
     if (error instanceof AppError) {
       set.status = error.statusCode;
       return errorResponse(error.code, error.message);
@@ -43,25 +36,46 @@ const app = new Elysia()
     return errorResponse("INTERNAL_ERROR", "Internal server error");
   })
   .ws("/ws", {
-    open(ws: ServerWebSocket<WebSocketData>) {
-      addConnection(ws);
+    body: undefined,
+    open(ws) {
+      addConnection(ws as any);
     },
-    message(ws: ServerWebSocket<WebSocketData>, message: string) {
+    message(ws, message: object) {
       try {
-        const data = JSON.parse(message);
+        console.log("Received WebSocket message:", message);
+        const data = JSON.parse(message.toString());
 
         // Handle authentication
         if (data.type === "auth" && data.token) {
-          // Store user info in connection data
-          ws.data.userId = data.userId;
-          ws.data.role = data.role;
+          // Verify JWT token
+          const payload = (app.decorator.jwt as any).verify(data.token) as
+            | JWTPayload
+            | false;
+
+          if (payload) {
+            // Store verified user info in connection data
+            (ws.data as WebSocketData).userId = payload.id;
+            (ws.data as WebSocketData).role = payload.role;
+            ws.send(JSON.stringify({ type: "auth", status: "authenticated" }));
+          } else {
+            ws.send(
+              JSON.stringify({
+                type: "auth",
+                status: "failed",
+                message: "Invalid token",
+              }),
+            );
+          }
         }
       } catch (error) {
         console.error("Error handling WebSocket message:", error);
+        ws.send(
+          JSON.stringify({ type: "error", message: "Invalid message format" }),
+        );
       }
     },
-    close(ws: ServerWebSocket<WebSocketData>) {
-      removeConnection(ws);
+    close(ws) {
+      removeConnection(ws as any);
     },
   })
   .get("/", () => ({

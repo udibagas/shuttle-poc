@@ -1,15 +1,38 @@
-import { useState, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Layout } from '../../components/Layout'
-import { StatusBadge } from '../../components/StatusBadge'
-import { apiClient } from '../../lib/api'
-import { useWebSocket } from '../../hooks/useWebSocket'
-import type { Booking, Driver } from '@shuttle/types'
-import { BookingStatus, DriverStatus } from '@shuttle/types'
+import { useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Layout } from '../../components/Layout';
+import { StatusBadge } from '../../components/StatusBadge';
+import { apiClient } from '../../lib/api';
+import { useWebSocket } from '../../hooks/useWebSocket';
+import type { Booking, Driver } from '@shuttle/types';
+import { BookingStatus, DriverStatus } from '@shuttle/types';
+import {
+  Card,
+  Button,
+  Space,
+  Typography,
+  Descriptions,
+  List,
+  Empty,
+  Switch,
+  Row,
+  Col,
+  Badge,
+} from 'antd';
+import {
+  UserOutlined,
+  EnvironmentOutlined,
+  CheckOutlined,
+  PlayCircleOutlined,
+  CloseOutlined,
+  CarOutlined,
+} from '@ant-design/icons';
+
+const { Title, Text } = Typography;
 
 export function DriverDashboard() {
-  const queryClient = useQueryClient()
-  const ws = useWebSocket()
+  const queryClient = useQueryClient();
+  const ws = useWebSocket();
 
   const { data: profile } = useQuery<Driver>({
     queryKey: ['driver-profile'],
@@ -69,14 +92,10 @@ export function DriverDashboard() {
       b.status === BookingStatus.IN_PROGRESS
   )
 
-  const handleStatusToggle = () => {
-    if (!profile) return
-    const newStatus =
-      profile.status === DriverStatus.ONLINE
-        ? DriverStatus.OFFLINE
-        : DriverStatus.ONLINE
-    updateStatusMutation.mutate(newStatus)
-  }
+  const handleStatusToggle = (checked: boolean) => {
+    const newStatus = checked ? DriverStatus.ONLINE : DriverStatus.OFFLINE;
+    updateStatusMutation.mutate(newStatus);
+  };
 
   const arrivedMutation = useMutation({
     mutationFn: (bookingId: string) =>
@@ -105,166 +124,212 @@ export function DriverDashboard() {
 
   return (
     <Layout>
-      <div className="px-4 sm:px-0 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Driver Dashboard
-          </h1>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-500">Status:</span>
-            <button
-              onClick={handleStatusToggle}
-              disabled={profile?.status === DriverStatus.BUSY}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${profile?.status === DriverStatus.ONLINE
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
-                } disabled:opacity-50`}
-            >
-              {profile?.status || 'Loading...'}
-            </button>
-          </div>
-        </div>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Title level={2} style={{ margin: 0 }}>
+              Driver Dashboard
+            </Title>
+          </Col>
+          <Col>
+            <Space>
+              <Text>Status:</Text>
+              <Switch
+                checked={profile?.status === DriverStatus.ONLINE}
+                onChange={handleStatusToggle}
+                disabled={profile?.status === DriverStatus.BUSY}
+                loading={updateStatusMutation.isPending}
+                checkedChildren="ONLINE"
+                unCheckedChildren="OFFLINE"
+              />
+              <Badge
+                status={
+                  profile?.status === DriverStatus.ONLINE
+                    ? 'success'
+                    : profile?.status === DriverStatus.BUSY
+                      ? 'processing'
+                      : 'default'
+                }
+                text={profile?.status || 'Loading...'}
+              />
+            </Space>
+          </Col>
+        </Row>
 
         {currentBooking && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4">
-              Current Booking - {currentBooking.bookingNumber}
-            </h2>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-500">Passenger</p>
-                <p className="font-medium">{currentBooking.user?.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Route</p>
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium">
-                    {currentBooking.pickupLocation?.name}
-                  </span>
-                  <span className="text-gray-400">→</span>
-                  <span className="font-medium">
-                    {currentBooking.destinationLocation?.name}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Passengers</p>
-                <p className="font-medium">{currentBooking.passengerCount}</p>
-              </div>
+          <Card
+            title={
+              <Space>
+                <CarOutlined />
+                <span>Current Booking - {currentBooking.bookingNumber}</span>
+              </Space>
+            }
+            bordered={false}
+            style={{ borderRadius: '8px' }}
+          >
+            <Descriptions column={{ xs: 1, sm: 2 }} bordered>
+              <Descriptions.Item label="Passenger">
+                <Space>
+                  <UserOutlined />
+                  {currentBooking.user?.name}
+                </Space>
+              </Descriptions.Item>
+              <Descriptions.Item label="Passenger Count">
+                {currentBooking.passengerCount}
+              </Descriptions.Item>
+              <Descriptions.Item label="Pickup" span={2}>
+                <Space>
+                  <EnvironmentOutlined />
+                  {currentBooking.pickupLocation?.name}
+                </Space>
+              </Descriptions.Item>
+              <Descriptions.Item label="Destination" span={2}>
+                <Space>
+                  <EnvironmentOutlined />
+                  {currentBooking.destinationLocation?.name}
+                </Space>
+              </Descriptions.Item>
               {currentBooking.notes && (
-                <div>
-                  <p className="text-sm text-gray-500">Notes</p>
-                  <p className="text-sm">{currentBooking.notes}</p>
-                </div>
+                <Descriptions.Item label="Notes" span={2}>
+                  {currentBooking.notes}
+                </Descriptions.Item>
               )}
-              <div className="pt-4 space-y-2">
-                {currentBooking.status === BookingStatus.ASSIGNED && (
-                  <button
-                    onClick={() => arrivedMutation.mutate(currentBooking.id)}
-                    disabled={arrivedMutation.isPending}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    Mark as Arrived
-                  </button>
-                )}
-                {currentBooking.status === BookingStatus.DRIVER_ARRIVED && (
-                  <button
-                    onClick={() => startTripMutation.mutate(currentBooking.id)}
-                    disabled={startTripMutation.isPending}
-                    className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
-                  >
-                    Start Trip
-                  </button>
-                )}
-                {currentBooking.status === BookingStatus.IN_PROGRESS && (
-                  <button
-                    onClick={() =>
-                      completeTripMutation.mutate(currentBooking.id)
-                    }
-                    disabled={completeTripMutation.isPending}
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-                  >
-                    Complete Trip
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+            </Descriptions>
+
+            <Space
+              direction="vertical"
+              size="middle"
+              style={{ width: '100%', marginTop: 16 }}
+            >
+              {currentBooking.status === BookingStatus.ASSIGNED && (
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  onClick={() => arrivedMutation.mutate(currentBooking.id)}
+                  loading={arrivedMutation.isPending}
+                  icon={<CheckOutlined />}
+                >
+                  Mark as Arrived
+                </Button>
+              )}
+              {currentBooking.status === BookingStatus.DRIVER_ARRIVED && (
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  onClick={() => startTripMutation.mutate(currentBooking.id)}
+                  loading={startTripMutation.isPending}
+                  icon={<PlayCircleOutlined />}
+                >
+                  Start Trip
+                </Button>
+              )}
+              {currentBooking.status === BookingStatus.IN_PROGRESS && (
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  onClick={() => completeTripMutation.mutate(currentBooking.id)}
+                  loading={completeTripMutation.isPending}
+                  icon={<CheckOutlined />}
+                  style={{ background: '#52c41a' }}
+                >
+                  Complete Trip
+                </Button>
+              )}
+            </Space>
+          </Card>
         )}
 
         {!currentBooking &&
           profile?.status === DriverStatus.ONLINE &&
           availableBookings && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4">Available Requests</h2>
+            <Card
+              title="Available Requests"
+              bordered={false}
+              style={{ borderRadius: '8px' }}
+            >
               {availableBookings.length > 0 ? (
-                <div className="space-y-4">
-                  {availableBookings.map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="border rounded-lg p-4 space-y-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">
-                          {booking.bookingNumber}
-                        </h3>
-                        <StatusBadge status={booking.status} />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Route</p>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium">
-                            {booking.pickupLocation?.name}
-                          </span>
-                          <span className="text-gray-400">→</span>
-                          <span className="font-medium">
-                            {booking.destinationLocation?.name}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Passengers</p>
-                        <p className="font-medium">{booking.passengerCount}</p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() =>
-                            acceptBookingMutation.mutate(booking.id)
-                          }
-                          disabled={acceptBookingMutation.isPending}
-                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                <List
+                  dataSource={availableBookings}
+                  renderItem={(booking) => (
+                    <List.Item>
+                      <Card
+                        size="small"
+                        style={{ width: '100%' }}
+                        title={
+                          <Space>
+                            <Text strong>{booking.bookingNumber}</Text>
+                            <StatusBadge status={booking.status} />
+                          </Space>
+                        }
+                      >
+                        <Space
+                          direction="vertical"
+                          size="middle"
+                          style={{ width: '100%' }}
                         >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() =>
-                            rejectBookingMutation.mutate(booking.id)
-                          }
-                          disabled={rejectBookingMutation.isPending}
-                          className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                          <div>
+                            <Text type="secondary">Route</Text>
+                            <div>
+                              <Space>
+                                <EnvironmentOutlined />
+                                <Text>{booking.pickupLocation?.name}</Text>
+                                <Text type="secondary">→</Text>
+                                <Text>{booking.destinationLocation?.name}</Text>
+                              </Space>
+                            </div>
+                          </div>
+                          <div>
+                            <Text type="secondary">Passengers: </Text>
+                            <Text strong>{booking.passengerCount}</Text>
+                          </div>
+                          <Space size="small" style={{ width: '100%' }}>
+                            <Button
+                              type="primary"
+                              icon={<CheckOutlined />}
+                              onClick={() =>
+                                acceptBookingMutation.mutate(booking.id)
+                              }
+                              loading={acceptBookingMutation.isPending}
+                              block
+                              style={{ background: '#52c41a' }}
+                            >
+                              Accept
+                            </Button>
+                            <Button
+                              danger
+                              icon={<CloseOutlined />}
+                              onClick={() =>
+                                rejectBookingMutation.mutate(booking.id)
+                              }
+                              loading={rejectBookingMutation.isPending}
+                              block
+                            >
+                              Reject
+                            </Button>
+                          </Space>
+                        </Space>
+                      </Card>
+                    </List.Item>
+                  )}
+                />
               ) : (
-                <p className="text-gray-500 text-center">
-                  No available requests
-                </p>
+                <Empty description="No available requests" />
               )}
-            </div>
+            </Card>
           )}
 
         {!currentBooking && profile?.status !== DriverStatus.ONLINE && (
-          <div className="bg-gray-50 rounded-lg p-6 text-center">
-            <p className="text-gray-500">
-              Set your status to ONLINE to receive booking requests
-            </p>
-          </div>
+          <Card bordered={false} style={{ borderRadius: '8px' }}>
+            <Empty
+              description="Set your status to ONLINE to receive booking requests"
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          </Card>
         )}
-      </div>
+      </Space>
     </Layout>
-  )
+  );
 }

@@ -1,6 +1,40 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Ant Design mobile optimizations */
+.ant-layout {
+  min-height: 100vh;
+}
+
+.ant-card {
+  margin-bottom: 16px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .ant-layout-header {
+    padding: 0 16px;
+  }
+
+  .ant-layout-content {
+    padding: 16px;
+  }
+
+  .ant-table {
+    font-size: 12px;
+  }
+
+  .ant-card {
+    margin-bottom: 12px;
+  }
+
+  .ant-statistic-title {
+    font-size: 12px;
+  }
+
+  .ant-statistic-content {
+    font-size: 20px;
+  }
+}
 
 body {
   margin: 0;

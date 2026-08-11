@@ -1,19 +1,24 @@
-import type { ServerWebSocket } from "bun";
 import type { WebSocketEvent } from "@shuttle/types";
 
-interface WebSocketData {
+export interface WebSocketData {
   userId?: string;
   role?: string;
 }
 
-const connections = new Set<ServerWebSocket<WebSocketData>>();
+// Generic WebSocket interface that works with both Bun and Elysia
+interface WSConnection {
+  data: WebSocketData;
+  send(message: string): void;
+}
 
-export function addConnection(ws: ServerWebSocket<WebSocketData>) {
+const connections = new Set<WSConnection>();
+
+export function addConnection(ws: WSConnection) {
   connections.add(ws);
   console.log(`WebSocket connected. Total connections: ${connections.size}`);
 }
 
-export function removeConnection(ws: ServerWebSocket<WebSocketData>) {
+export function removeConnection(ws: WSConnection) {
   connections.delete(ws);
   console.log(`WebSocket disconnected. Total connections: ${connections.size}`);
 }
