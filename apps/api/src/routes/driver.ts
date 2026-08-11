@@ -15,7 +15,7 @@ export const driverRoutes = (app: Elysia) =>
   app.use(jwtPlugin).group("/driver", (app) =>
     app
       .get("/profile", async ({ request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.DRIVER]);
 
         const driver = await prisma.driver.findUnique({
@@ -39,7 +39,7 @@ export const driverRoutes = (app: Elysia) =>
       .post(
         "/status",
         async ({ body, request, jwt }) => {
-          const user = requireAuth({ request, jwt } as any);
+          const user = await requireAuth({ request, jwt } as any);
           requireRole(user, [UserRole.DRIVER]);
 
           const { status } = body as { status: DriverStatus };
@@ -63,7 +63,7 @@ export const driverRoutes = (app: Elysia) =>
         },
       )
       .get("/bookings/available", async ({ request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.DRIVER]);
 
         // Get pending bookings
@@ -82,7 +82,7 @@ export const driverRoutes = (app: Elysia) =>
         return successResponse(bookings);
       })
       .post("/bookings/:id/accept", async ({ params, request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.DRIVER]);
 
         const driver = await prisma.driver.findUnique({
@@ -172,7 +172,7 @@ export const driverRoutes = (app: Elysia) =>
         return successResponse(result);
       })
       .post("/bookings/:id/reject", async ({ params, request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.DRIVER]);
 
         const driver = await prisma.driver.findUnique({
@@ -215,7 +215,7 @@ export const driverRoutes = (app: Elysia) =>
         return successResponse({ message: "Booking rejected successfully" });
       })
       .post("/bookings/:id/arrived", async ({ params, request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.DRIVER]);
 
         const driver = await prisma.driver.findUnique({
@@ -280,7 +280,7 @@ export const driverRoutes = (app: Elysia) =>
         return successResponse(updatedBooking);
       })
       .post("/bookings/:id/start", async ({ params, request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.DRIVER]);
 
         const driver = await prisma.driver.findUnique({
@@ -345,7 +345,7 @@ export const driverRoutes = (app: Elysia) =>
         return successResponse(updatedBooking);
       })
       .post("/bookings/:id/complete", async ({ params, request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.DRIVER]);
 
         const driver = await prisma.driver.findUnique({

@@ -9,7 +9,7 @@ export const adminRoutes = (app: Elysia) =>
   app.use(jwtPlugin).group("/admin", (app) =>
     app
       .get("/dashboard", async ({ request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.ADMIN]);
 
         const today = new Date();
@@ -71,8 +71,8 @@ export const adminRoutes = (app: Elysia) =>
           cancelledToday,
         });
       })
-      .get("/bookings", async ({ request, jwt, query }) => {
-        const user = requireAuth({ request, jwt } as any);
+      .get("/bookings", async ({ request, jwt }) => {
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.ADMIN]);
 
         const bookings = await prisma.booking.findMany({
@@ -94,7 +94,7 @@ export const adminRoutes = (app: Elysia) =>
         return successResponse(bookings);
       })
       .get("/drivers", async ({ request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.ADMIN]);
 
         const drivers = await prisma.driver.findMany({
@@ -127,7 +127,7 @@ export const adminRoutes = (app: Elysia) =>
         return successResponse(drivers);
       })
       .get("/users", async ({ request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.ADMIN]);
 
         const users = await prisma.user.findMany({
@@ -142,7 +142,7 @@ export const adminRoutes = (app: Elysia) =>
         return successResponse(users);
       })
       .get("/vehicles", async ({ request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.ADMIN]);
 
         const vehicles = await prisma.vehicle.findMany({

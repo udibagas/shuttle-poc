@@ -64,8 +64,8 @@ export const authRoutes = (app: Elysia) =>
           }),
         },
       )
-      .get("/me", ({ request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+      .get("/me", async ({ request, jwt }) => {
+        const user = await requireAuth({ request, jwt } as any);
 
         return successResponse(user);
       }),

@@ -14,7 +14,7 @@ export const bookingRoutes = (app: Elysia) =>
       .post(
         "/",
         async ({ body, request, jwt }) => {
-          const user = requireAuth({ request, jwt } as any);
+          const user = await requireAuth({ request, jwt } as any);
           requireRole(user, [UserRole.USER]);
 
           const data = body as CreateBookingRequest;
@@ -95,7 +95,7 @@ export const bookingRoutes = (app: Elysia) =>
         },
       )
       .get("/", async ({ request, jwt, query }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
 
         let whereClause: any = {};
 
@@ -129,7 +129,7 @@ export const bookingRoutes = (app: Elysia) =>
         return successResponse(bookings);
       })
       .get("/:id", async ({ params, request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
 
         const booking = await prisma.booking.findUnique({
           where: { id: params.id },
@@ -175,7 +175,7 @@ export const bookingRoutes = (app: Elysia) =>
         return successResponse(booking);
       })
       .post("/:id/cancel", async ({ params, request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.USER]);
 
         const booking = await prisma.booking.findUnique({

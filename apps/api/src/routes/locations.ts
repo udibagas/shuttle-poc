@@ -34,7 +34,7 @@ export const locationRoutes = (app: Elysia) =>
       .post(
         "/",
         async ({ body, request, jwt }) => {
-          const user = requireAuth({ request, jwt } as any);
+          const user = await requireAuth({ request, jwt } as any);
           requireRole(user, [UserRole.ADMIN]);
 
           const data = body as CreateLocationRequest;
@@ -66,7 +66,7 @@ export const locationRoutes = (app: Elysia) =>
       .put(
         "/:id",
         async ({ params, body, request, jwt }) => {
-          const user = requireAuth({ request, jwt } as any);
+          const user = await requireAuth({ request, jwt } as any);
           requireRole(user, [UserRole.ADMIN]);
 
           const data = body as UpdateLocationRequest;
@@ -90,7 +90,7 @@ export const locationRoutes = (app: Elysia) =>
         },
       )
       .delete("/:id", async ({ params, request, jwt }) => {
-        const user = requireAuth({ request, jwt } as any);
+        const user = await requireAuth({ request, jwt } as any);
         requireRole(user, [UserRole.ADMIN]);
 
         await prisma.location.delete({

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Card, Form, Input, Button, Alert, Typography, Space, Divider } from 'antd';
 import { UserOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 export function LoginPage() {
   const [error, setError] = useState('');
@@ -46,7 +46,7 @@ export function LoginPage() {
           borderRadius: '12px',
         }}
       >
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center' }}>
             <Title level={2} style={{ marginBottom: 8 }}>
               🚐 Shuttle POC
