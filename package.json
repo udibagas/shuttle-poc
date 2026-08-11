@@ -1,0 +1,27 @@
+{
+  "name": "shuttle-poc",
+  "version": "1.0.0",
+  "description": "Shuttle Transportation Management POC for Port Operations",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "keywords": [
+    "shuttle",
+    "dispatch",
+    "port",
+    "transportation"
+  ],
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "db:push": "pnpm --filter @shuttle/api db:push",
+    "db:migrate": "pnpm --filter @shuttle/api db:migrate",
+    "db:generate": "pnpm --filter @shuttle/api db:generate",
+    "db:seed": "pnpm --filter @shuttle/api db:seed",
+    "db:studio": "pnpm --filter @shuttle/api db:studio"
+  }
+}

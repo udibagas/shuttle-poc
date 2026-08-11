@@ -1,0 +1,178 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  DRIVER
+  ADMIN
+}
+
+enum DriverStatus {
+  OFFLINE
+  ONLINE
+  BUSY
+}
+
+enum VehicleType {
+  MINIBUS
+  VAN
+  BUS
+}
+
+enum LocationType {
+  GATE
+  TERMINAL
+  WAREHOUSE
+  WORKSHOP
+  OFFICE
+  OTHER
+}
+
+enum BookingStatus {
+  PENDING
+  ASSIGNED
+  DRIVER_ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum BookingDriverAttemptStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  username     String   @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  bookings Booking[]
+  driver   Driver?
+
+  @@index([username])
+  @@index([role])
+  @@map("users")
+}
+
+model Driver {
+  id        String       @id @default(cuid())
+  userId    String       @unique
+  vehicleId String?
+  status    DriverStatus @default(OFFLINE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  // Relations
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle               Vehicle?               @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  bookings              Booking[]
+  bookingDriverAttempts BookingDriverAttempt[]
+
+  @@index([userId])
+  @@index([vehicleId])
+  @@index([status])
+  @@map("drivers")
+}
+
+model Vehicle {
+  id          String      @id @default(cuid())
+  plateNumber String      @unique
+  type        VehicleType
+  capacity    Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  drivers Driver[]
+
+  @@index([plateNumber])
+  @@map("vehicles")
+}
+
+model Location {
+  id        String       @id @default(cuid())
+  code      String       @unique
+  name      String
+  type      LocationType
+  latitude  Float
+  longitude Float
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  // Relations
+  bookingsAsPickup      Booking[] @relation("PickupLocation")
+  bookingsAsDestination Booking[] @relation("DestinationLocation")
+
+  @@index([code])
+  @@index([isActive])
+  @@map("locations")
+}
+
+model Booking {
+  id                    String        @id @default(cuid())
+  bookingNumber         String        @unique
+  userId                String
+  pickupLocationId      String
+  destinationLocationId String
+  passengerCount        Int
+  notes                 String?
+  status                BookingStatus @default(PENDING)
+  driverId              String?
+  requestedAt           DateTime      @default(now())
+  assignedAt            DateTime?
+  driverArrivedAt       DateTime?
+  startedAt             DateTime?
+  completedAt           DateTime?
+  cancelledAt           DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  // Relations
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pickupLocation        Location               @relation("PickupLocation", fields: [pickupLocationId], references: [id])
+  destinationLocation   Location               @relation("DestinationLocation", fields: [destinationLocationId], references: [id])
+  driver                Driver?                @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  bookingDriverAttempts BookingDriverAttempt[]
+
+  @@index([bookingNumber])
+  @@index([userId])
+  @@index([driverId])
+  @@index([status])
+  @@index([requestedAt])
+  @@map("bookings")
+}
+
+model BookingDriverAttempt {
+  id          String                     @id @default(cuid())
+  bookingId   String
+  driverId    String
+  status      BookingDriverAttemptStatus @default(PENDING)
+  respondedAt DateTime?
+  createdAt   DateTime                   @default(now())
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  driver  Driver  @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([driverId])
+  @@index([status])
+  @@map("booking_driver_attempts")
+}
