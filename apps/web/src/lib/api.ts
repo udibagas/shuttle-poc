@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL =
+  (import.meta as any).env.VITE_API_URL || "http://localhost:3000";
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -35,9 +36,9 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {},
   ): Promise<T> {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
